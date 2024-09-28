@@ -27,6 +27,9 @@ importers:
       '@vitejs/plugin-react-swc':
         specifier: ^3.5.0
         version: 3.7.0(vite@5.4.8)
+      chrome-types:
+        specifier: ^0.1.307
+        version: 0.1.307
       eslint:
         specifier: ^9.9.0
         version: 9.11.1
@@ -519,6 +522,9 @@ packages:
   chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
     engines: {node: '>=10'}
+
+  chrome-types@0.1.307:
+    resolution: {integrity: sha512-IbwiExo5HCD41m1cJ1veai3rhz26K/Ig+L3dsw59GpJkOHwtzPxvq1FJprt6xk6ZH0MCrbcZSA5g0wLPpOXsYQ==}
 
   color-convert@2.0.1:
     resolution: {integrity: sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==}
@@ -1317,6 +1323,8 @@ snapshots:
     dependencies:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
+
+  chrome-types@0.1.307: {}
 
   color-convert@2.0.1:
     dependencies:
