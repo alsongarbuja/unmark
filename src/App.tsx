@@ -1,34 +1,17 @@
-// import moment from "moment";
-import { ArchiveSlash, Timer1 } from "iconsax-react";
 import moment from "moment";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { ArchiveSlash, Timer1 } from "iconsax-react";
+
+import { syncBookmarks } from "./helpers/sync";
+import { getAllBookMarks, removeBookMark } from "./features/Bookmark";
+import { deleteBookMarkFromLocalStorage } from "./features/Localstorage";
+// import { addNotificationToBookmark } from "./features/Notification";
 
 function App() {
   const [bookmarks, setBookmarks] = useState<IBookmark[]>([]);
   const [sortBy, setSortBy] = useState<"dateAdded" | "lastUsed">("dateAdded");
 
-  const extractBookmark = useCallback(
-    (bookmarks: IBookmarkGroup[] | IBookmark[]) => {
-      bookmarks.forEach((bookmark) => {
-        if ("children" in bookmark) {
-          extractBookmark(bookmark.children);
-        } else {
-          setBookmarks((prev) => [
-            ...prev,
-            {
-              ...bookmark,
-              remindIn: null,
-            },
-          ]);
-        }
-      });
-    },
-    []
-  );
-
   const sortBookmarks = (sortBy: "dateAdded" | "lastUsed") => {
-    console.log(bookmarks);
-
     setBookmarks((prev) =>
       prev.sort((a, b) => {
         if (sortBy === "dateAdded") {
@@ -40,43 +23,19 @@ function App() {
     );
   };
 
-  useEffect(() => {
-    const getBookMarks = async () => {
-      const bookmarks = await chrome.bookmarks.getTree();
-      if (bookmarks.length === 0) {
-        return;
-      }
-      extractBookmark(bookmarks as unknown as IBookmarkGroup[]);
-    };
-
-    getBookMarks();
-  }, [extractBookmark]);
-
-  // const addBookMark = () => {
-  //   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-  //     chrome.bookmarks.create({
-  //       parentId: "1",
-  //       title: tabs[0].title,
-  //       url: tabs[0].url,
-  //     });
-  //   });
-  // };
-
-  // const addReminderToBookmark = (id: string, remindIn: number) => {
-  //   const date = new Date();
-  //   date.setMilliseconds(date.getMilliseconds() + remindIn);
-  //   const remindDate = remindIn === 0 ? null : date.getTime();
-  //   setBookmarks((prev) =>
-  //     prev.map((bookmark) =>
-  //       bookmark.id === id ? { ...bookmark, remindIn: remindDate } : bookmark
-  //     )
-  //   );
-  // };
-
-  const deleteBookMark = (id: string) => {
-    chrome.bookmarks.remove(id);
+  const deleteBookMark = async (id: string) => {
+    await removeBookMark(id);
+    deleteBookMarkFromLocalStorage(id);
     setBookmarks((prev) => prev.filter((bookmark) => bookmark.id !== id));
   };
+
+  useEffect(() => {
+    (async () => {
+      const bookmarks = await getAllBookMarks();
+      setBookmarks(bookmarks);
+      syncBookmarks(bookmarks);
+    })();
+  }, []);
 
   return (
     <main className="min-w-[400px]">
@@ -133,7 +92,11 @@ function App() {
               {bookmark.remindIn && (
                 <>({moment(bookmark.remindIn).fromNow()})</>
               )}
-              <span className="text-blue-500">
+              <span
+                className="text-blue-500 cursor-pointer"
+                title="Add reminder"
+                // onClick={() => addNotificationToBookmark(bookmark.id, 30)}
+              >
                 <Timer1 variant="Bulk" size={20} />
               </span>
               <button

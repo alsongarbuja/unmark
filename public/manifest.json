@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "unmark",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Tired of those piled up bookmarks, clear them out easily or add reminders to check them later instead of letting them pile up.",
   "action": {
     "default_popup": "index.html"
@@ -12,5 +12,5 @@
     "64": "icons/unmark-icon-64x64.png",
     "128": "icons/unmark-icon-128x128.png"
   },
-  "permissions": ["bookmarks", "tabs"]
+  "permissions": ["bookmarks", "tabs", "notifications"]
 }
