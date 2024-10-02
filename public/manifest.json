@@ -12,5 +12,5 @@
     "64": "icons/unmark-icon-64x64.png",
     "128": "icons/unmark-icon-128x128.png"
   },
-  "permissions": ["bookmarks", "tabs", "notifications"]
+  "permissions": ["bookmarks", "tabs", "notifications", "alarms", "background"]
 }

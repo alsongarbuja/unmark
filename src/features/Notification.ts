@@ -1,11 +1,5 @@
-
-export const addNotificationToBookmark = async (id: string, remindIn: number) => {
-  setTimeout(() => {
-    chrome.notifications.create(id, {
-      title: "Unmark",
-      message: "Bookmark Reminder",
-      type: "basic",
-      iconUrl: "/icons/unmark-icon-32x32.png",
-    });
-  }, remindIn * 1000);
+export const setAlarm = async (title: string, url: string, remindIn: number) => {
+  chrome.alarms.create(`${url}*_*${title}`, {
+    when: Date.now() + remindIn * 1000,
+  });
 }

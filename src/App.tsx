@@ -5,7 +5,7 @@ import { ArchiveSlash, Timer1 } from "iconsax-react";
 import { syncBookmarks } from "./helpers/sync";
 import { getAllBookMarks, removeBookMark } from "./features/Bookmark";
 import { deleteBookMarkFromLocalStorage } from "./features/Localstorage";
-// import { addNotificationToBookmark } from "./features/Notification";
+import { setAlarm } from "./features/Notification";
 
 function App() {
   const [bookmarks, setBookmarks] = useState<IBookmark[]>([]);
@@ -29,7 +29,53 @@ function App() {
     setBookmarks((prev) => prev.filter((bookmark) => bookmark.id !== id));
   };
 
+  const addReminderToBookmark = async (
+    title: string,
+    url: string,
+    remindIn: number,
+    id: string
+  ) => {
+    await setAlarm(title, url, remindIn);
+    setBookmarks((prev) =>
+      prev.map((bookmark) => {
+        if (bookmark.id === id) {
+          return {
+            ...bookmark,
+            remindIn: Date.now() + remindIn,
+          };
+        }
+        return bookmark;
+      })
+    );
+  };
+
   useEffect(() => {
+    chrome.alarms.onAlarm.addListener((alarm) => {
+      const [, title] = alarm.name.split("*_*");
+      chrome.notifications.create(alarm.name, {
+        title: "Unmark - Reminder",
+        message: `Time to visit ( ${title} ) bookmark`,
+        type: "basic",
+        iconUrl: "/icons/unmark-icon-32x32.png",
+        buttons: [
+          {
+            title: "Open Bookmark",
+          },
+          { title: "Snooze 5 minutes" },
+        ],
+      });
+    });
+    chrome.notifications.onButtonClicked.addListener(
+      (notificationId, buttonIndex) => {
+        const [url, title] = notificationId.split("*_*");
+        if (buttonIndex === 0) {
+          chrome.tabs.create({ url });
+        } else {
+          setAlarm(title, url, 5 * 60);
+        }
+      }
+    );
+
     (async () => {
       const bookmarks = await getAllBookMarks();
       setBookmarks(bookmarks);
@@ -95,7 +141,14 @@ function App() {
               <span
                 className="text-blue-500 cursor-pointer"
                 title="Add reminder"
-                // onClick={() => addNotificationToBookmark(bookmark.id, 30)}
+                onClick={() =>
+                  addReminderToBookmark(
+                    bookmark.title,
+                    bookmark.url,
+                    10,
+                    bookmark.id
+                  )
+                }
               >
                 <Timer1 variant="Bulk" size={20} />
               </span>
