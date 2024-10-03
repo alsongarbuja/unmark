@@ -10,4 +10,6 @@ export const syncBookmarks = async (latestBookMarks: IBookmark[]) => {
   const syncedBookmarks = [...bookmarks, ...newBookmarks.map((bookmark) => ({ ...bookmark, remindIn: null }))];
 
   localStorage.setItem(BOOKMARKS_LIST, JSON.stringify(syncedBookmarks));
+
+  return syncedBookmarks;
 }
