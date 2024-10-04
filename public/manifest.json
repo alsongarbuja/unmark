@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "unmark",
-  "version": "0.3.0",
-  "description": "Tired of those piled up bookmarks, clear them out easily or add reminders to check them later instead of letting them pile up.",
+  "version": "0.6.0",
+  "description": "Tired of those piled up bookmarks, add reminders to check them later and clear afterwards.",
   "action": {
     "default_popup": "index.html"
   },
@@ -12,5 +12,8 @@
     "64": "icons/unmark-icon-64x64.png",
     "128": "icons/unmark-icon-128x128.png"
   },
-  "permissions": ["bookmarks", "tabs", "notifications", "alarms", "background"]
+  "permissions": ["bookmarks", "tabs", "notifications", "alarms", "background"],
+  "background": {
+    "service_worker": "alarm.js"
+  }
 }
