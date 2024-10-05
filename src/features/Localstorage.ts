@@ -5,7 +5,7 @@ export const addAllBookMarksToLocalStorage = (bookmarks: IBookmark[]) => {
   return bookmarks;
 }
 
-export const getAllBookMarksFromLocalStorage = () => {
+export const getAllBookMarksFromLocalStorage = (): IBookmark[] => {
   const bookmarks = JSON.parse(localStorage.getItem(BOOKMARKS_LIST) || "[]");
   return bookmarks;
 }

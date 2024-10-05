@@ -39,7 +39,7 @@ export default function Notification({
     <>
       <button
         ref={refs.setReference}
-        className="text-blue-500"
+        className="text-blue-300"
         title="Add reminder"
         onClick={() => setIsOpen(!isOpen)}
       >

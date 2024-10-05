@@ -16,5 +16,5 @@ interface IBookmark {
   dateAdded: number;
   dateLastUsed: number;
   index: number;
-  remindIn: string | null;
+  remindIn: Date | null;
 }

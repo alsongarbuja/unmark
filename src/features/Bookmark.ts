@@ -1,6 +1,5 @@
 
 const extractBookmarks = (bookmarks: IBookmarkGroup[] | IBookmark[], extractedBookMarks: IBookmark[]) => {
-  console.log(bookmarks);
   bookmarks.forEach((bookmark) => {
     if ("children" in bookmark) {
       extractBookmarks(bookmark.children, extractedBookMarks);
