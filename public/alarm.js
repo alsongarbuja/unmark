@@ -1,5 +1,14 @@
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("Extension Installed");
+  // const bookmarks = JSON.parse(localStorage.getItem("unmark-BOOKMARKS_LIST"));
+  // if (bookmarks) {
+  //   bookmarks.forEach((bookmark) => {
+  //     if (bookmark.remindIn) {
+  //       chrome.alarms.create(`${bookmark.url}*_*${bookmark.title}`, {
+  //         when: bookmark.remindIn.toDate().getTime(),
+  //       });
+  //     }
+  //   });
+  // }
 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -30,3 +39,19 @@ chrome.notifications.onButtonClicked.addListener(
     }
   }
 );
+
+chrome.bookmarks.onCreated.addListener((id, bookmark) => {
+  console.log("onCreated", id, bookmark);
+});
+
+chrome.bookmarks.onRemoved.addListener((id, removeInfo) => {
+  console.log("onRemoved", id, removeInfo);
+});
+
+chrome.bookmarks.onChanged.addListener((id, changeInfo) => {
+  console.log("onChanged", id, changeInfo);
+});
+
+chrome.sidePanel
+  .setPanelBehavior({ openPanelOnActionClick: true })
+  .catch((err) => console.error(err));

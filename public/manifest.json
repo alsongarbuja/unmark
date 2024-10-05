@@ -4,7 +4,7 @@
   "version": "0.6.0",
   "description": "Tired of those piled up bookmarks, add reminders to check them later and clear afterwards.",
   "action": {
-    "default_popup": "index.html"
+    "default_title": "Unmark"
   },
   "icons": {
     "16": "icons/unmark-icon-16x16.png",
@@ -12,8 +12,18 @@
     "64": "icons/unmark-icon-64x64.png",
     "128": "icons/unmark-icon-128x128.png"
   },
-  "permissions": ["bookmarks", "tabs", "notifications", "alarms", "background"],
+  "permissions": [
+    "bookmarks",
+    "tabs",
+    "notifications",
+    "alarms",
+    "background",
+    "sidePanel"
+  ],
   "background": {
     "service_worker": "alarm.js"
+  },
+  "side_panel": {
+    "default_path": "index.html"
   }
 }
