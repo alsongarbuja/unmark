@@ -2,11 +2,12 @@ import moment from "moment";
 import { useEffect, useState } from "react";
 import { ArchiveSlash } from "iconsax-react";
 
-import { syncBookmarks } from "./helpers/sync";
+// import { syncBookmarks } from "./helpers/sync";
 import Notification from "./components/Notification";
 import { getAllBookMarks, removeBookMark } from "./features/Bookmark";
 import { deleteBookMarkFromLocalStorage } from "./features/Localstorage";
 import { setAlarm } from "./features/Notification";
+import { syncBookmarks } from "./helpers/sync";
 
 function App() {
   const [bookmarks, setBookmarks] = useState<IBookmark[]>([]);
@@ -36,19 +37,24 @@ function App() {
     url: string,
     remindIn: number
   ) => {
-    const bookmark = bookmarks.find((bookmark) => bookmark.id === id);
-    if (!bookmark) return;
-    bookmark.remindIn = new Date(
-      Date.now() + remindIn * 1000 * 60
-    ).toISOString();
-    setBookmarks(await syncBookmarks(bookmarks));
+    const updatedBookmarks = bookmarks.map((bookmark) => {
+      if (bookmark.id === id) {
+        return {
+          ...bookmark,
+          remindIn: new Date(Date.now() + remindIn * 1000 * 60),
+        };
+      }
+      return bookmark;
+    });
+    setBookmarks(await syncBookmarks(updatedBookmarks, true));
     await setAlarm(title, url, remindIn);
   };
 
   useEffect(() => {
     (async () => {
       const bookmarks = await getAllBookMarks();
-      setBookmarks(await syncBookmarks(bookmarks));
+      const syncedBookmarks = await syncBookmarks(bookmarks);
+      setBookmarks(syncedBookmarks);
     })();
   }, []);
 
