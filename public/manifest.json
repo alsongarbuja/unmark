@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "unmark",
+  "name": "Unmark",
   "version": "0.6.0",
   "description": "Tired of those piled up bookmarks, add reminders to check them later and clear afterwards.",
   "action": {
@@ -21,7 +21,7 @@
     "sidePanel"
   ],
   "background": {
-    "service_worker": "alarm.js"
+    "service_worker": "background.js"
   },
   "side_panel": {
     "default_path": "index.html"
