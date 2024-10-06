@@ -40,29 +40,23 @@ export default function BookmarkTile({ bookmark }: IBookmarkTileProps) {
   return (
     <div
       key={bookmark.id}
-      className="flex items-center justify-between p-2 text-white hover:bg-slate-400/40"
+      className="flex items-center justify-between px-4 py-2 text-white hover:bg-slate-400/40"
     >
-      <a href={bookmark.url} target="_blank" rel="noreferrer">
-        {bookmark.title}
+      <a
+        href={bookmark.url}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex items-center gap-2"
+      >
+        <img
+          src={`https://www.google.com/s2/favicons?domain=${bookmark.url}`}
+          alt={`${bookmark.title}`}
+          className="p-2 rounded-md bg-slate-900"
+        />
+        <span>{bookmark.title}</span>
       </a>
 
       <div className="flex items-center gap-2">
-        {/* <div className="flex flex-col items-start gap-1">
-          <select
-            onChange={(e) => {
-              const remindIn = e.target.value;
-              addReminderToBookmark(bookmark.id, Number(remindIn));
-            }}
-            className="w-full p-1 text-black border rounded-md"
-          >
-            <option value={0}>None</option>
-            <option value={60000}>1 Minute</option>
-            <option value={300000}>5 Minutes</option>
-            <option value={600000}>10 Minutes</option>
-            <option value={1800000}>30 Minutes</option>
-            <option value={3600000}>1 Hour</option>
-          </select>
-        </div> */}
         {bookmark.remindIn && <>({moment(bookmark.remindIn).fromNow()})</>}
         <Notification bookmark={bookmark} addReminder={addReminder} />
         <button

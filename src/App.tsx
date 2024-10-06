@@ -4,9 +4,18 @@ import { addAllToLS } from "./features/Localstorage";
 import { getAllBookMarks } from "./features/Bookmark";
 import BookmarkFolder from "./components/BookmarkFolder";
 import { getNewAndUpdatedReminders } from "./helpers/convertor";
+import BookmarkTile from "./components/BookmarkTile";
+import { bookmarkChildrenFinder } from "./helpers/bookmarkFinder";
+import { ArrowLeft } from "iconsax-react";
 
 function App() {
+  const [currentBookMark, setCurrentBookMark] = useState<Bookmark>({
+    id: "0",
+    title: "All BookMarks",
+    remindIn: null,
+  });
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [allBookmarks, setAllBookmarks] = useState<Bookmark[]>([]);
   const [sortBy, setSortBy] = useState<"dateAdded" | "lastUsed">("dateAdded");
 
   const sortBookmarks = (sortBy: "dateAdded" | "lastUsed") => {
@@ -21,11 +30,26 @@ function App() {
     );
   };
 
+  const changeBookmarkLevel = (id: string) => {
+    if (id === "0") {
+      setBookmarks(allBookmarks);
+      setCurrentBookMark({
+        id: "0",
+        title: "All BookMarks",
+        remindIn: null,
+      });
+      return;
+    }
+    const bookmarks = bookmarkChildrenFinder(id, allBookmarks);
+    setCurrentBookMark(
+      bookmarks ?? { id: "0", title: "All BookMarks", remindIn: null }
+    );
+    setBookmarks(bookmarks ? (bookmarks.children as Bookmark[]) : []);
+  };
+
   useEffect(() => {
     (async () => {
       const bookmarks = await getAllBookMarks();
-      console.log(bookmarks);
-
       const b: Bookmark[] = bookmarks[0].children!.map(
         (bookmark: IBookmark) => {
           return {
@@ -37,6 +61,7 @@ function App() {
       );
       const reminders = getNewAndUpdatedReminders(bookmarks);
       addAllToLS(reminders);
+      setAllBookmarks(b);
       setBookmarks(b);
     })();
   }, []);
@@ -51,14 +76,22 @@ function App() {
         />
         <h1 className="text-2xl font-semibold">Unmark</h1>
       </div>
-      <div className="flex items-center gap-2 py-2">
-        <input
-          type="text"
-          placeholder="Search Bookmark"
-          className="w-full p-3 text-gray-800 rounded-full bg-slate-400 placeholder:text-gray-800"
-        />
-        <div className="flex flex-col items-start gap-1">
-          <label htmlFor="sortby">Sort By</label>
+      <input
+        type="text"
+        placeholder="Search Bookmark"
+        className="w-full p-3 my-2 text-gray-800 rounded-full bg-slate-400 placeholder:text-gray-800"
+      />
+      <div className="flex items-center justify-between gap-2 py-2">
+        {currentBookMark.id !== "0" && (
+          <button
+            onClick={() => changeBookmarkLevel(currentBookMark.parentId ?? "0")}
+          >
+            <ArrowLeft size={20} />
+          </button>
+        )}
+        <h3 className="text-lg font-semibold">{currentBookMark.title}</h3>
+        <div className="flex items-end gap-1">
+          <label htmlFor="sortby">Sort in</label>
           <select
             value={sortBy}
             onChange={(e) => {
@@ -66,16 +99,25 @@ function App() {
               setSortBy(sort);
               sortBookmarks(sort);
             }}
-            className="w-full p-1 text-black border rounded-full bg-slate-400"
+            className="p-1 text-black rounded-full w-min bg-slate-400"
           >
             <option value="dateAdded">Date Added</option>
             <option value="lastUsed">Last Used</option>
           </select>
         </div>
       </div>
-      <div className="mt-4">
+      <div className="flex flex-col mt-4">
         {bookmarks.map((bookmark) => {
-          return <BookmarkFolder bookmark={bookmark} key={bookmark.id} />;
+          if (bookmark.children) {
+            return (
+              <BookmarkFolder
+                onClick={changeBookmarkLevel}
+                bookmark={bookmark}
+                key={bookmark.id}
+              />
+            );
+          }
+          return <BookmarkTile bookmark={bookmark} key={bookmark.id} />;
         })}
       </div>
     </main>

@@ -1,24 +1,22 @@
 // import BookmarkTile from "./BookmarkTile";
 
+import { Folder2 } from "iconsax-react";
+
 interface IBookmarkFolderProps {
   bookmark: IBookmark;
+  onClick: (id: string) => void;
 }
 
-export default function BookmarkFolder({ bookmark }: IBookmarkFolderProps) {
+export default function BookmarkFolder({
+  bookmark,
+  onClick,
+}: IBookmarkFolderProps) {
   return (
-    <div>
-      <div className="flex items-center justify-between p-2 text-white hover:bg-slate-400/40">
-        <div>{bookmark.title}</div>
-      </div>
-      <div className="ml-4">
-        {/* {bookmark.children?.map((child) => {
-          if (child.children) {
-            return <BookmarkFolder bookmark={child} key={child.id} />;
-          } else {
-            return <BookmarkTile bookmark={child} key={child.id} />;
-          }
-        })} */}
-      </div>
-    </div>
+    <button
+      onClick={() => onClick(bookmark.id)}
+      className="inline-flex w-full gap-2 px-4 py-2 text-white hover:bg-slate-400/40"
+    >
+      <Folder2 variant="Bulk" size={20} /> {bookmark.title}
+    </button>
   );
 }
