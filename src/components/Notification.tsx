@@ -63,7 +63,7 @@ export default function Notification({
                 addReminder(
                   bookmark.id,
                   bookmark.title,
-                  bookmark.url,
+                  bookmark.url!,
                   notification.time
                 );
               }}

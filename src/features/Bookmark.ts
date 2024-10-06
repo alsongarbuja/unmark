@@ -1,22 +1,6 @@
-
-const extractBookmarks = (bookmarks: IBookmarkGroup[] | IBookmark[], extractedBookMarks: IBookmark[]) => {
-  bookmarks.forEach((bookmark) => {
-    if ("children" in bookmark) {
-      extractBookmarks(bookmark.children, extractedBookMarks);
-    } else {
-      extractedBookMarks.push({
-        ...bookmark,
-        remindIn: null,
-      });
-    }
-  });
-}
-
 export const getAllBookMarks = async () => {
   const bookmarks = await chrome.bookmarks.getTree();
-  const extractedBookMarks: IBookmark[] = [];
-  extractBookmarks(bookmarks as unknown as IBookmarkGroup[], extractedBookMarks);
-  return extractedBookMarks;
+  return bookmarks;
 }
 
 export const addBookMark = async (title: string) => {
