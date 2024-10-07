@@ -4,13 +4,23 @@ import { ArchiveSlash } from "iconsax-react";
 import Notification from "./Notification";
 import { setAlarm } from "../features/Notification";
 import { removeBookMark } from "../features/Bookmark";
-import { deleteReminderInLS } from "../features/Localstorage";
+import {
+  deleteReminderInLS,
+  getRemindersFromLS,
+} from "../features/Localstorage";
+import { BOOKMARKS_REMINDERS_LIST } from "../constants/localstorage";
 
 interface IBookmarkTileProps {
   bookmark: Bookmark;
+  remindIn: Date | null;
+  updateReminder: (id: string, remindIn: Date) => void;
 }
 
-export default function BookmarkTile({ bookmark }: IBookmarkTileProps) {
+export default function BookmarkTile({
+  bookmark,
+  remindIn,
+  updateReminder,
+}: IBookmarkTileProps) {
   const deleteBookMark = async (id: string) => {
     await removeBookMark(id);
     deleteReminderInLS(id);
@@ -22,18 +32,15 @@ export default function BookmarkTile({ bookmark }: IBookmarkTileProps) {
     url: string,
     remindIn: number
   ) => {
-    console.log(id);
-    // TODO: Add reminder to bookmark
-    // const updatedBookmarks = bookmarks.map((bookmark) => {
-    //   if (bookmark.id === id) {
-    //     return {
-    //       ...bookmark,
-    //       remindIn: new Date(Date.now() + remindIn * 1000 * 60),
-    //     };
-    //   }
-    //   return bookmark;
-    // });
-    // setBookmarks(await syncBookmarks(updatedBookmarks, true));
+    const remindDate = moment()
+      .add(remindIn * 60, "seconds")
+      .toDate();
+    const reminders = getRemindersFromLS();
+    reminders[id] = { remindIn: remindDate };
+
+    localStorage.setItem(BOOKMARKS_REMINDERS_LIST, JSON.stringify(reminders));
+
+    updateReminder(id, remindDate);
     await setAlarm(title, url, remindIn);
   };
 
@@ -57,7 +64,7 @@ export default function BookmarkTile({ bookmark }: IBookmarkTileProps) {
       </a>
 
       <div className="flex items-center gap-2">
-        {bookmark.remindIn && <>({moment(bookmark.remindIn).fromNow()})</>}
+        {remindIn && <>({moment(remindIn).fromNow()})</>}
         <Notification bookmark={bookmark} addReminder={addReminder} />
         <button
           className="text-red-600"

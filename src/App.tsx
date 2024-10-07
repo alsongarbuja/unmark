@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { addAllToLS } from "./features/Localstorage";
+import { addAllToLS, getRemindersFromLS } from "./features/Localstorage";
 import { getAllBookMarks } from "./features/Bookmark";
 import BookmarkFolder from "./components/BookmarkFolder";
 import { getNewAndUpdatedReminders } from "./helpers/convertor";
@@ -17,6 +17,7 @@ function App() {
     title: "All BookMarks",
     remindIn: null,
   });
+  const [reminders, setReminders] = useState<BookmarkReminderObject>({});
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [allBookmarks, setAllBookmarks] = useState<Bookmark[]>([]);
   const [isSortPopOpen, setIsSortPopOpen] = useState(false);
@@ -63,6 +64,12 @@ function App() {
     setBookmarks(bookmarks ? (bookmarks.children as Bookmark[]) : []);
   };
 
+  const updateReminder = (id: string, remindIn: Date) => {
+    setReminders((prev) => {
+      return { ...prev, [id]: { remindIn } };
+    });
+  };
+
   useEffect(() => {
     (async () => {
       const bookmarks = await getAllBookMarks();
@@ -77,6 +84,8 @@ function App() {
       );
       const reminders = getNewAndUpdatedReminders(bookmarks);
       addAllToLS(reminders, deepFlatBookmark(b));
+
+      setReminders(getRemindersFromLS());
       setAllBookmarks(b);
       setBookmarks(b);
     })();
@@ -162,7 +171,14 @@ function App() {
               />
             );
           }
-          return <BookmarkTile bookmark={bookmark} key={bookmark.id} />;
+          return (
+            <BookmarkTile
+              bookmark={bookmark}
+              key={bookmark.id}
+              remindIn={reminders[bookmark.id].remindIn ?? null}
+              updateReminder={updateReminder}
+            />
+          );
         })}
       </div>
     </main>

@@ -29,5 +29,5 @@ export const checkIfReminderStale = (id: string) => {
   }
   const reminder = getReminderFromLSWithId(id);
   const remindInDate = moment(reminder.remindIn);
-  return moment().isBefore(remindInDate);
+  return moment().isAfter(remindInDate);
 }
