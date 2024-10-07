@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Unmark",
-  "version": "0.6.0",
+  "version": "0.8.0",
   "description": "Tired of those piled up bookmarks, add reminders to check them later and clear afterwards.",
   "action": {
     "default_title": "Unmark"
