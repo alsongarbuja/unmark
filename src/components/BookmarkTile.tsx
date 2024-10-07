@@ -9,6 +9,7 @@ import {
   getRemindersFromLS,
 } from "../features/Localstorage";
 import { BOOKMARKS_REMINDERS_LIST } from "../constants/localstorage";
+import { toast } from "sonner";
 
 interface IBookmarkTileProps {
   bookmark: Bookmark;
@@ -24,6 +25,7 @@ export default function BookmarkTile({
   const deleteBookMark = async (id: string) => {
     await removeBookMark(id);
     deleteReminderInLS(id);
+    toast.info("Bookmark removed");
   };
 
   const addReminder = async (
@@ -42,6 +44,8 @@ export default function BookmarkTile({
 
     updateReminder(id, remindDate);
     await setAlarm(title, url, remindIn);
+
+    toast.success("Reminder added");
   };
 
   return (
@@ -58,7 +62,7 @@ export default function BookmarkTile({
         <img
           src={`https://www.google.com/s2/favicons?domain=${bookmark.url}`}
           alt={`${bookmark.title}`}
-          className="p-2 rounded-md bg-slate-900"
+          className="w-8 h-8 p-2 rounded-md bg-slate-900"
         />
         <span>{bookmark.title}</span>
       </a>

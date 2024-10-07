@@ -10,6 +10,7 @@ import { ArrowLeft, Sort, TickCircle } from "iconsax-react";
 import { autoPlacement, useFloating } from "@floating-ui/react-dom";
 import { sortOptions } from "./utils/sort";
 import { deepFlatBookmark } from "./helpers/array";
+import { Toaster } from "sonner";
 
 function App() {
   const [currentBookMark, setCurrentBookMark] = useState<Bookmark>({
@@ -93,6 +94,7 @@ function App() {
 
   return (
     <main className="min-h-screen px-2 text-white bg-slate-800">
+      <Toaster richColors position="bottom-center" />
       <div className="flex items-center justify-start gap-4 py-6">
         <img
           src="/icons/unmark-icon-32x32.png"
