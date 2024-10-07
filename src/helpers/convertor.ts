@@ -1,5 +1,5 @@
 import moment from "moment";
-import { getRemindersFromLS } from "../features/Localstorage";
+import { getReminderFromLSWithId } from "../features/Localstorage";
 
 export const getNewAndUpdatedReminders = (bookmarks: IBookmark[]) => {
   let reminders: BookmarkReminderObject = {};
@@ -8,7 +8,7 @@ export const getNewAndUpdatedReminders = (bookmarks: IBookmark[]) => {
       const childrenReminders = getNewAndUpdatedReminders(bookmarks[i].children!);
       reminders = { ...reminders, ...childrenReminders };
     } else {
-      if (checkIfReminderExists(bookmarks[i].id) && checkIfReminderStale(bookmarks[i].id)) {
+      if (!checkIfReminderExists(bookmarks[i].id) || checkIfReminderStale(bookmarks[i].id)) {
         const { id } = bookmarks[i];
         reminders[id] = { remindIn: null };
       }
@@ -19,13 +19,15 @@ export const getNewAndUpdatedReminders = (bookmarks: IBookmark[]) => {
 }
 
 const checkIfReminderExists = (id: string) => {
-  const reminders = getRemindersFromLS();
-  return reminders[id] ? true : false;
+  const reminder = getReminderFromLSWithId(id);
+  return !!reminder;
 }
 
 export const checkIfReminderStale = (id: string) => {
-  const reminders = getRemindersFromLS();
-  const remindInDate = reminders[id].remindIn;
-  if (!remindInDate) return false;
+  if (!checkIfReminderExists(id)) {
+    return false;
+  }
+  const reminder = getReminderFromLSWithId(id);
+  const remindInDate = moment(reminder.remindIn);
   return moment().isBefore(remindInDate);
 }

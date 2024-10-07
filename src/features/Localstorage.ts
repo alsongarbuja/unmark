@@ -5,8 +5,14 @@ export const getRemindersFromLS = (): BookmarkReminderObject => {
   return reminders;
 }
 
-export const addAllToLS = (reminders: BookmarkReminderObject) => {
+export const addAllToLS = (reminders: BookmarkReminderObject, bookmarks: Bookmark[]) => {
   const lsReminders = getRemindersFromLS();
+  const toRemoveReminders = Object.keys(lsReminders).filter((id) => {
+    return !bookmarks.some((bookmark) => bookmark.id === id);
+  });
+  toRemoveReminders.forEach((id) => {
+    delete lsReminders[id];
+  });
   const updatedReminders = { ...lsReminders, ...reminders };
   localStorage.setItem(BOOKMARKS_REMINDERS_LIST, JSON.stringify(updatedReminders));
 }

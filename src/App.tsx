@@ -9,6 +9,7 @@ import { bookmarkChildrenFinder } from "./helpers/bookmarkFinder";
 import { ArrowLeft, Sort, TickCircle } from "iconsax-react";
 import { autoPlacement, useFloating } from "@floating-ui/react-dom";
 import { sortOptions } from "./utils/sort";
+import { deepFlatBookmark } from "./helpers/array";
 
 function App() {
   const [currentBookMark, setCurrentBookMark] = useState<Bookmark>({
@@ -75,7 +76,7 @@ function App() {
         }
       );
       const reminders = getNewAndUpdatedReminders(bookmarks);
-      addAllToLS(reminders);
+      addAllToLS(reminders, deepFlatBookmark(b));
       setAllBookmarks(b);
       setBookmarks(b);
     })();
@@ -148,18 +149,6 @@ function App() {
               ></div>
             </>
           )}
-          {/* <select
-            value={sortBy}
-            onChange={(e) => {
-              const sort = e.target.value as "dateAdded" | "lastUsed";
-              setSortBy(sort);
-              sortBookmarks(sort);
-            }}
-            className="p-1 text-black rounded-full w-min bg-slate-400"
-          >
-            <option value="dateAdded">Date Added</option>
-            <option value="lastUsed">Last Used</option>
-          </select> */}
         </div>
       </div>
       <div className="flex flex-col mt-4">
