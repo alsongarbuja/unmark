@@ -3,7 +3,7 @@ import { Timer1, TimerPause } from "iconsax-react";
 import { autoPlacement, useFloating } from "@floating-ui/react-dom";
 
 interface INotificationProps {
-  bookmark: IBookmark;
+  bookmark: Bookmark;
   hasReminder: boolean;
   addReminder: (
     id: string,

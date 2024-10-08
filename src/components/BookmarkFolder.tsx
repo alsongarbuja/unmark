@@ -3,7 +3,7 @@
 import { Folder2 } from "iconsax-react";
 
 interface IBookmarkFolderProps {
-  bookmark: IBookmark;
+  bookmark: Bookmark;
   onClick: (id: string) => void;
 }
 

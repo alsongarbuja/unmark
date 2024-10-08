@@ -70,14 +70,12 @@ function App() {
   useEffect(() => {
     (async () => {
       const bookmarks = await getAllBookMarks();
-      const b: Bookmark[] = bookmarks[0].children!.map(
-        (bookmark: IBookmark) => {
-          return {
-            ...bookmark,
-            dateLastUsed: bookmark.dateAdded,
-          };
-        }
-      );
+      const b: Bookmark[] = bookmarks[0].children!.map((bookmark) => {
+        return {
+          ...bookmark,
+          dateLastUsed: bookmark.dateAdded,
+        };
+      });
       const reminders = getNewAndUpdatedReminders(bookmarks);
       addAllToLS(reminders, deepFlatBookmark(b));
 

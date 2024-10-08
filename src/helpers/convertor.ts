@@ -1,7 +1,7 @@
 import moment from "moment";
 import { getReminderFromLSWithId } from "../features/Localstorage";
 
-export const getNewAndUpdatedReminders = (bookmarks: IBookmark[]) => {
+export const getNewAndUpdatedReminders = (bookmarks: Bookmark[]) => {
   let reminders: BookmarkReminderObject = {};
   for (let i = 0; i < bookmarks.length; i++) {
     if (bookmarks[i].children) {
