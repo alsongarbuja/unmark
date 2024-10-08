@@ -2,7 +2,7 @@ import moment from "moment";
 import { ArchiveSlash } from "iconsax-react";
 
 import Notification from "./Notification";
-import { setAlarm } from "../features/Notification";
+import { removeAlarm, setAlarm } from "../features/Notification";
 import { removeBookMark } from "../features/Bookmark";
 import {
   deleteReminderInLS,
@@ -10,11 +10,12 @@ import {
 } from "../features/Localstorage";
 import { BOOKMARKS_REMINDERS_LIST } from "../constants/localstorage";
 import { toast } from "sonner";
+import { cn } from "../utils/cn";
 
 interface IBookmarkTileProps {
   bookmark: Bookmark;
   remindIn: Date | null;
-  updateReminder: (id: string, remindIn: Date) => void;
+  updateReminder: (id: string, remindIn: Date | null) => void;
 }
 
 export default function BookmarkTile({
@@ -39,13 +40,21 @@ export default function BookmarkTile({
       .toDate();
     const reminders = getRemindersFromLS();
     reminders[id] = { remindIn: remindDate };
-
     localStorage.setItem(BOOKMARKS_REMINDERS_LIST, JSON.stringify(reminders));
 
     updateReminder(id, remindDate);
     await setAlarm(title, url, remindIn);
-
     toast.success("Reminder added");
+  };
+
+  const removeReminder = async (id: string, bookmarkId: string) => {
+    const reminders = getRemindersFromLS();
+    reminders[id] = { remindIn: null };
+    localStorage.setItem(BOOKMARKS_REMINDERS_LIST, JSON.stringify(reminders));
+
+    updateReminder(bookmarkId, null);
+    await removeAlarm(id);
+    toast.info("Reminder cancelled");
   };
 
   return (
@@ -57,19 +66,28 @@ export default function BookmarkTile({
         href={bookmark.url}
         target="_blank"
         rel="noreferrer"
-        className="inline-flex items-center gap-2"
+        className="inline-flex items-center flex-1 gap-2"
       >
         <img
           src={`https://www.google.com/s2/favicons?domain=${bookmark.url}`}
           alt={`${bookmark.title}`}
           className="w-8 h-8 p-2 rounded-md bg-slate-900"
         />
-        <span>{bookmark.title}</span>
+        <p className="flex flex-col gap-2">
+          <p className={cn("", remindIn && "text-sm")}>{bookmark.title}</p>
+          <span className="font-semibold text-red-400">
+            {remindIn && <>{moment(remindIn).fromNow()}</>}
+          </span>
+        </p>
       </a>
 
       <div className="flex items-center gap-2">
-        {remindIn && <>({moment(remindIn).fromNow()})</>}
-        <Notification bookmark={bookmark} addReminder={addReminder} />
+        <Notification
+          hasReminder={!!remindIn}
+          bookmark={bookmark}
+          addReminder={addReminder}
+          removeReminder={removeReminder}
+        />
         <button
           className="text-red-600"
           onClick={() => deleteBookMark(bookmark.id)}

@@ -6,5 +6,5 @@ interface IBookmark extends chrome.bookmarks.BookmarkTreeNode {
   dateLastUsed?: number;
 }
 
-type Bookmark = IBookmark & IBookmarkReminder;
+type Bookmark = IBookmark;
 type BookmarkReminderObject = { [key: string]: IBookmarkReminder };

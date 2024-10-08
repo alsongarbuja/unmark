@@ -35,3 +35,7 @@ export const setAlarm = async (title: string, url: string, remindIn: number) => 
     when: Date.now() + remindIn * 1000 * 60,
   });
 }
+
+export const removeAlarm = async (id: string) => {
+  chrome.alarms.clear(id);
+}

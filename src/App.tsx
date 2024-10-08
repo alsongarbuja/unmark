@@ -16,7 +16,6 @@ function App() {
   const [currentBookMark, setCurrentBookMark] = useState<Bookmark>({
     id: "0",
     title: "All BookMarks",
-    remindIn: null,
   });
   const [reminders, setReminders] = useState<BookmarkReminderObject>({});
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
@@ -54,18 +53,15 @@ function App() {
       setCurrentBookMark({
         id: "0",
         title: "All BookMarks",
-        remindIn: null,
       });
       return;
     }
     const bookmarks = bookmarkChildrenFinder(id, allBookmarks);
-    setCurrentBookMark(
-      bookmarks ?? { id: "0", title: "All BookMarks", remindIn: null }
-    );
+    setCurrentBookMark(bookmarks ?? { id: "0", title: "All BookMarks" });
     setBookmarks(bookmarks ? (bookmarks.children as Bookmark[]) : []);
   };
 
-  const updateReminder = (id: string, remindIn: Date) => {
+  const updateReminder = (id: string, remindIn: Date | null) => {
     setReminders((prev) => {
       return { ...prev, [id]: { remindIn } };
     });
@@ -79,7 +75,6 @@ function App() {
           return {
             ...bookmark,
             dateLastUsed: bookmark.dateAdded,
-            remindIn: null,
           };
         }
       );
