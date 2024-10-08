@@ -32,9 +32,15 @@ Unmark is an open source chrome extension built out of the frustration of piled 
 
 ### Tech stack
 
-I have used `React Typescript` with `Vite` as the bundle tool in order to build the UI and state of the extension.
-
-I am also using `chrome API` specifically `bookmarks, alarm, notification, sidepanel and background APIs`
+- [React - library](https://react.dev)
+- [Vite - bundler](https://vite.dev)
+- [Typescript](https://www.typescriptlang.org/)
+- [Pnpm - package manager](https://pnpm.io)
+- [Sonner - toaster](https://sonner.emilkowal.ski/)
+- [Floating UI - popups](https://floating-ui.com/)
+- [Iconsax - icons](https://iconsax-react.pages.dev/)
+- [Moment - date management](https://momentjs.com/)
+- [@Types/Chrome - chrome types and apis](https://www.npmjs.com/package/@types/chrome)
 
 ### References
 
