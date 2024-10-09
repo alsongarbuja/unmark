@@ -1,16 +1,17 @@
+import { Toaster } from "sonner";
 import { useEffect, useState } from "react";
+import { ArrowLeft, Sort, TickSquare } from "iconsax-react";
 
-import { addAllToLS, getRemindersFromLS } from "./features/Localstorage";
+import { sortOptions } from "./utils/sort";
+import BookmarkTile from "./components/BookmarkTile";
 import { getAllBookMarks } from "./features/Bookmark";
 import BookmarkFolder from "./components/BookmarkFolder";
-import { getNewAndUpdatedReminders } from "./helpers/convertor";
-import BookmarkTile from "./components/BookmarkTile";
+import { BOOKMARKS_SORT_ORDER } from "./constants/localstorage";
+import { deepFlatBookmark, sortBookmarks } from "./helpers/array";
 import { bookmarkChildrenFinder } from "./helpers/bookmarkFinder";
-import { ArrowLeft, Sort, TickCircle } from "iconsax-react";
 import { autoPlacement, useFloating } from "@floating-ui/react-dom";
-import { sortOptions } from "./utils/sort";
-import { deepFlatBookmark } from "./helpers/array";
-import { Toaster } from "sonner";
+import { addAllToLS, getRemindersFromLS } from "./features/Localstorage";
+import { addLastUsed, getNewAndUpdatedReminders } from "./helpers/convertor";
 
 function App() {
   const [currentBookMark, setCurrentBookMark] = useState<Bookmark>({
@@ -30,22 +31,9 @@ function App() {
       }),
     ],
   });
-  const [sortBy, setSortBy] = useState<string>("dateAdded");
-
-  const sortBookmarks = (sortBy: string) => {
-    // TODO: fix the sorting
-    setBookmarks((prev) =>
-      prev.sort((a, b) => {
-        if (sortBy === "dateAdded") {
-          return a.dateAdded! - b.dateAdded!;
-        } else {
-          return a.dateLastUsed! - b.dateLastUsed!;
-        }
-      })
-    );
-    setSortBy(sortBy);
-    setIsSortPopOpen(false);
-  };
+  const [sortBy, setSortBy] = useState<string>(
+    localStorage.getItem(BOOKMARKS_SORT_ORDER) ?? "lastUsed"
+  );
 
   const changeBookmarkLevel = (id: string) => {
     if (id === "0") {
@@ -70,12 +58,7 @@ function App() {
   useEffect(() => {
     (async () => {
       const bookmarks = await getAllBookMarks();
-      const b: Bookmark[] = bookmarks[0].children!.map((bookmark) => {
-        return {
-          ...bookmark,
-          dateLastUsed: bookmark.dateAdded,
-        };
-      });
+      const b: Bookmark[] = addLastUsed(bookmarks[0].children!);
       const reminders = getNewAndUpdatedReminders(bookmarks);
       addAllToLS(reminders, deepFlatBookmark(b));
 
@@ -84,6 +67,21 @@ function App() {
       setBookmarks(b);
     })();
   }, []);
+
+  useEffect(() => {
+    (() => {
+      const folders = bookmarks.filter((b) => "children" in b);
+      const b = bookmarks.filter((b) => !("children" in b));
+
+      const sortedFolders = sortBookmarks(folders, sortBy);
+      const sortedB = sortBookmarks(b, sortBy);
+
+      setBookmarks([...sortedFolders, ...sortedB]);
+      localStorage.setItem(BOOKMARKS_SORT_ORDER, sortBy);
+      setIsSortPopOpen(false);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentBookMark, sortBy]);
 
   return (
     <main className="min-h-screen px-2 text-white bg-slate-800">
@@ -138,12 +136,22 @@ function App() {
                   <button
                     key={index}
                     onClick={() => {
-                      sortBookmarks(sortOption.value);
+                      setSortBy(sortOption.value);
                     }}
-                    className="flex items-center gap-2 px-4 py-2 text-white hover:bg-slate-400/40"
+                    className="flex items-center justify-start gap-2 px-4 py-2 text-white hover:bg-slate-400/40"
                   >
-                    {sortBy === sortOption.value && <TickCircle size={18} />}{" "}
-                    {sortOption.title}
+                    <span className="flex-1 text-start">
+                      {sortOption.title}
+                    </span>
+                    {sortBy === sortOption.value ? (
+                      <TickSquare
+                        size={16}
+                        variant="Bulk"
+                        className="text-blue-200"
+                      />
+                    ) : (
+                      <span className="w-8" />
+                    )}
                   </button>
                 ))}
               </div>

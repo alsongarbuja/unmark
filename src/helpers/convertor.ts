@@ -31,3 +31,21 @@ export const checkIfReminderStale = (id: string) => {
   const remindInDate = moment(reminder.remindIn);
   return moment().isAfter(remindInDate);
 }
+
+export const addLastUsed = (bookmarks: Bookmark[]) => {
+  const b: Bookmark[] = [];
+
+  for (let i = 0; i < bookmarks.length; i++) {
+    const bm: Bookmark = {
+      ...bookmarks[i],
+      dateLastUsed: bookmarks[i].dateLastUsed ?? bookmarks[i].dateAdded,
+    };
+    if (bm.children) {
+      bm.children = addLastUsed(bm.children);
+    }
+
+    b.push(bm);
+  }
+
+  return b;
+}
