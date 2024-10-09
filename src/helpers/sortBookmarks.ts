@@ -1,12 +1,3 @@
-export const deepFlatBookmark = (bookmarks: Bookmark[]): Bookmark[] => {
-  return bookmarks.flatMap((bookmark) => {
-    if (bookmark.children) {
-      return [bookmark, ...deepFlatBookmark(bookmark.children as Bookmark[])];
-    }
-    return bookmark;
-  });
-}
-
 export const sortBookmarks = (bookmarks: Bookmark[], sortOrder: string): Bookmark[] => {
   return bookmarks.sort((a, b) => {
     switch (sortOrder) {

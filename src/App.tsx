@@ -1,17 +1,31 @@
 import { Toaster } from "sonner";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Sort, TickSquare } from "iconsax-react";
-
-import { sortOptions } from "./utils/sort";
-import BookmarkTile from "./components/BookmarkTile";
-import { getAllBookMarks } from "./features/Bookmark";
-import BookmarkFolder from "./components/BookmarkFolder";
-import { BOOKMARKS_SORT_ORDER } from "./constants/localstorage";
-import { deepFlatBookmark, sortBookmarks } from "./helpers/array";
-import { bookmarkChildrenFinder } from "./helpers/bookmarkFinder";
 import { autoPlacement, useFloating } from "@floating-ui/react-dom";
-import { addAllToLS, getRemindersFromLS } from "./features/Localstorage";
-import { addLastUsed, getNewAndUpdatedReminders } from "./helpers/convertor";
+
+// UTILITIES
+import { sortOptions } from "./utils/sort";
+
+// FEATURE FUNCTIONS
+import { getAllBookMarks } from "./features/Bookmark";
+import {
+  addAllRemindersToLocalStorage,
+  getRemindersFromLocalStorage,
+} from "./features/Localstorage";
+
+// CONSTANTS
+import { BOOKMARKS_SORT_ORDER } from "./constants/localstorage";
+
+// COMPONENTS
+import BookmarkTile from "./components/BookmarkTile";
+import BookmarkFolder from "./components/BookmarkFolder";
+
+// HELPER FUNCTIONS
+import { sortBookmarks } from "./helpers/sortBookmarks";
+import { deepFlatBookmark } from "./helpers/deepFlatBookmarks";
+import { bookmarkChildrenFinder } from "./helpers/bookmarkFinder";
+import { addLastUsedProperty } from "./helpers/addLastUsedProperty";
+import { getNewAndUpdatedReminders } from "./helpers/updatedReminder";
 
 function App() {
   const [currentBookMark, setCurrentBookMark] = useState<Bookmark>({
@@ -55,14 +69,32 @@ function App() {
     });
   };
 
+  const deleteBookmarkFromState = (id: string) => {
+    setBookmarks((prev) => prev.filter((b) => b.id !== id));
+    const removeFromAllBookmarks = (b: Bookmark[]): Bookmark[] => {
+      return b.filter((bookmark) => {
+        if (bookmark.id === id) {
+          return false;
+        }
+        if ("children" in bookmark) {
+          bookmark.children = removeFromAllBookmarks(bookmark.children!);
+        }
+        return true;
+      });
+    };
+
+    setAllBookmarks(removeFromAllBookmarks(allBookmarks));
+  };
+
   useEffect(() => {
     (async () => {
       const bookmarks = await getAllBookMarks();
-      const b: Bookmark[] = addLastUsed(bookmarks[0].children!);
-      const reminders = getNewAndUpdatedReminders(bookmarks);
-      addAllToLS(reminders, deepFlatBookmark(b));
+      const b: Bookmark[] = addLastUsedProperty(bookmarks[0].children!);
+      const reminders = getRemindersFromLocalStorage();
+      const newReminders = getNewAndUpdatedReminders(bookmarks, reminders);
+      addAllRemindersToLocalStorage(newReminders, deepFlatBookmark(b));
 
-      setReminders(getRemindersFromLS());
+      setReminders(getRemindersFromLocalStorage());
       setAllBookmarks(b);
       setBookmarks(b);
     })();
@@ -180,6 +212,7 @@ function App() {
               key={bookmark.id}
               remindIn={reminders[bookmark.id].remindIn ?? null}
               updateReminder={updateReminder}
+              deleteBookmarkFromState={deleteBookmarkFromState}
             />
           );
         })}

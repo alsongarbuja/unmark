@@ -1,31 +1,34 @@
 import moment from "moment";
+import { toast } from "sonner";
 import { ArchiveSlash } from "iconsax-react";
 
+import { cn } from "../helpers/cn";
 import Notification from "./Notification";
-import { removeAlarm, setAlarm } from "../features/Notification";
 import { removeBookMark } from "../features/Bookmark";
-import {
-  deleteReminderInLS,
-  getRemindersFromLS,
-} from "../features/Localstorage";
+import { removeAlarm, setAlarm } from "../features/Notification";
 import { BOOKMARKS_REMINDERS_LIST } from "../constants/localstorage";
-import { toast } from "sonner";
-import { cn } from "../utils/cn";
+import {
+  deleteReminderInLocalStorage,
+  getRemindersFromLocalStorage,
+} from "../features/Localstorage";
 
 interface IBookmarkTileProps {
   bookmark: Bookmark;
   remindIn: Date | null;
   updateReminder: (id: string, remindIn: Date | null) => void;
+  deleteBookmarkFromState: (id: string) => void;
 }
 
 export default function BookmarkTile({
   bookmark,
   remindIn,
   updateReminder,
+  deleteBookmarkFromState,
 }: IBookmarkTileProps) {
   const deleteBookMark = async (id: string) => {
+    deleteBookmarkFromState(id);
     await removeBookMark(id);
-    deleteReminderInLS(id);
+    deleteReminderInLocalStorage(id);
     toast.info("Bookmark removed");
   };
 
@@ -38,7 +41,7 @@ export default function BookmarkTile({
     const remindDate = moment()
       .add(remindIn * 60, "seconds")
       .toDate();
-    const reminders = getRemindersFromLS();
+    const reminders = getRemindersFromLocalStorage();
     reminders[id] = { remindIn: remindDate };
     localStorage.setItem(BOOKMARKS_REMINDERS_LIST, JSON.stringify(reminders));
 
@@ -48,7 +51,7 @@ export default function BookmarkTile({
   };
 
   const removeReminder = async (id: string, bookmarkId: string) => {
-    const reminders = getRemindersFromLS();
+    const reminders = getRemindersFromLocalStorage();
     reminders[id] = { remindIn: null };
     localStorage.setItem(BOOKMARKS_REMINDERS_LIST, JSON.stringify(reminders));
 

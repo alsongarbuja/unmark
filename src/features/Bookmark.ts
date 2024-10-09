@@ -16,3 +16,11 @@ export const addBookMark = async (title: string) => {
 export const removeBookMark = async (id: string) => {
   await chrome.bookmarks.remove(id);
 }
+
+export const addFolder = async (title: string, parentId: string) => {
+  const folder = await chrome.bookmarks.create({
+    parentId,
+    title,
+  });
+  return folder;
+}
