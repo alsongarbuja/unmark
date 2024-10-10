@@ -7,3 +7,4 @@ interface Bookmark extends chrome.bookmarks.BookmarkTreeNode {
 }
 
 type BookmarkReminderObject = { [key: string]: IBookmarkReminder };
+type dynamicObject = { [key: string]: unknown };

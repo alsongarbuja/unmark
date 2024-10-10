@@ -1,13 +1,12 @@
-import { Toaster } from "sonner";
+import { toast, Toaster } from "sonner";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Sort, TickSquare } from "iconsax-react";
-import { autoPlacement, useFloating } from "@floating-ui/react-dom";
 
 // UTILITIES
 import { sortOptions } from "./utils/sort";
 
 // FEATURE FUNCTIONS
-import { getAllBookMarks } from "./features/Bookmark";
+import { getAllBookMarks, removeBookMark } from "./features/Bookmark";
 import {
   addAllRemindersToLocalStorage,
   getRemindersFromLocalStorage,
@@ -17,8 +16,13 @@ import {
 import { BOOKMARKS_SORT_ORDER } from "./constants/localstorage";
 
 // COMPONENTS
+import AddFolder from "./components/AddFolder";
+import PopupWrapper from "./components/PopupWrapper";
 import BookmarkTile from "./components/BookmarkTile";
 import BookmarkFolder from "./components/BookmarkFolder";
+
+// CUSTOM HOOKS
+import { useFloatingPop } from "./hooks/useFloatingPop";
 
 // HELPER FUNCTIONS
 import { sortBookmarks } from "./helpers/sortBookmarks";
@@ -35,16 +39,7 @@ function App() {
   const [reminders, setReminders] = useState<BookmarkReminderObject>({});
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [allBookmarks, setAllBookmarks] = useState<Bookmark[]>([]);
-  const [isSortPopOpen, setIsSortPopOpen] = useState(false);
-  const { refs, floatingStyles } = useFloating({
-    open: isSortPopOpen,
-    placement: "bottom",
-    middleware: [
-      autoPlacement({
-        allowedPlacements: ["left"],
-      }),
-    ],
-  });
+  const { refs, setIsOpen, isOpen, floatingStyles } = useFloatingPop();
   const [sortBy, setSortBy] = useState<string>(
     localStorage.getItem(BOOKMARKS_SORT_ORDER) ?? "lastUsed"
   );
@@ -86,6 +81,50 @@ function App() {
     setAllBookmarks(removeFromAllBookmarks(allBookmarks));
   };
 
+  const addFolderInState = (folder: Bookmark, parentId: string) => {
+    setReminders((prev) => ({ ...prev, [folder.id]: { remindIn: null } }));
+    setBookmarks((prev) => [folder, ...prev]);
+    const addFolderToAllBookmarks = (b: Bookmark[]): Bookmark[] => {
+      return b.map((bookmark) => {
+        if (bookmark.id === parentId) {
+          bookmark.children = [folder, ...(bookmark.children ?? [])];
+        }
+        if ("children" in bookmark) {
+          bookmark.children = addFolderToAllBookmarks(bookmark.children!);
+        }
+        return bookmark;
+      });
+    };
+
+    setAllBookmarks(addFolderToAllBookmarks(allBookmarks));
+  };
+
+  const deleteFolder = (id: string) => {
+    const toRemoveFolder = bookmarks.find((b) => b.id === id);
+    if (!toRemoveFolder) return;
+
+    toRemoveFolder.children?.forEach((b) => {
+      removeBookMark(b.id);
+    });
+    removeBookMark(id);
+
+    setBookmarks((prev) => prev.filter((b) => b.id !== id));
+    const removeFromAllBookmarks = (b: Bookmark[]): Bookmark[] => {
+      return b.filter((bookmark) => {
+        if (bookmark.id === id) {
+          return false;
+        }
+        if ("children" in bookmark) {
+          bookmark.children = removeFromAllBookmarks(bookmark.children!);
+        }
+        return true;
+      });
+    };
+
+    setAllBookmarks(removeFromAllBookmarks(allBookmarks));
+    toast.info("Folder removed");
+  };
+
   useEffect(() => {
     (async () => {
       const bookmarks = await getAllBookMarks();
@@ -110,15 +149,15 @@ function App() {
 
       setBookmarks([...sortedFolders, ...sortedB]);
       localStorage.setItem(BOOKMARKS_SORT_ORDER, sortBy);
-      setIsSortPopOpen(false);
+      setIsOpen(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentBookMark, sortBy]);
 
   return (
-    <main className="min-h-screen px-2 text-white bg-slate-800">
+    <main className="min-h-screen text-white bg-slate-800">
       <Toaster richColors position="bottom-center" />
-      <div className="flex items-center justify-start gap-4 py-6">
+      <div className="flex items-center justify-start gap-4 px-4 py-6">
         <img
           src="/icons/unmark-icon-32x32.png"
           alt="unmark icon"
@@ -126,12 +165,14 @@ function App() {
         />
         <h1 className="text-2xl font-semibold">Unmark</h1>
       </div>
-      <input
-        type="text"
-        placeholder="Search Bookmark"
-        className="w-full p-3 my-2 text-gray-800 rounded-full bg-slate-400 placeholder:text-gray-800"
-      />
-      <div className="flex items-center justify-between gap-2 py-2">
+      <div className="px-4 my-2">
+        <input
+          type="text"
+          placeholder="Search Bookmark"
+          className="w-full p-3 text-gray-800 rounded-full bg-slate-400 placeholder:text-gray-800"
+        />
+      </div>
+      <div className="flex items-center justify-between gap-2 px-4 py-2">
         <div className="flex items-center gap-2">
           {currentBookMark.id !== "0" && (
             <button
@@ -146,56 +187,48 @@ function App() {
         </div>
         <div className="flex items-end gap-1">
           <label htmlFor="sortby">Sort By</label>
-          <button
-            ref={refs.setReference}
-            onClick={() => setIsSortPopOpen(true)}
+          <PopupWrapper
+            refs={refs}
+            floatingStyles={floatingStyles}
+            buttonLabel="Sort list"
+            buttonIcon={<Sort size={20} />}
+            buttonClick={() => setIsOpen(!isOpen)}
+            closePop={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+            }}
+            isOpen={isOpen}
           >
-            <Sort size={20} />
-          </button>
-          {isSortPopOpen && (
             <>
-              <div
-                ref={refs.setFloating}
-                style={{
-                  ...floatingStyles,
-                  padding: "0px",
-                  marginInlineEnd: "1rem",
-                  width: "max-content",
-                }}
-                className="z-20 flex flex-col rounded-md shadow-md bg-slate-900 min-w-32"
-              >
-                {sortOptions.map((sortOption, index) => (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      setSortBy(sortOption.value);
-                    }}
-                    className="flex items-center justify-start gap-2 px-4 py-2 text-white hover:bg-slate-400/40"
-                  >
-                    <span className="flex-1 text-start">
-                      {sortOption.title}
-                    </span>
-                    {sortBy === sortOption.value ? (
-                      <TickSquare
-                        size={16}
-                        variant="Bulk"
-                        className="text-blue-200"
-                      />
-                    ) : (
-                      <span className="w-8" />
-                    )}
-                  </button>
-                ))}
-              </div>
-              <div
-                className="fixed top-0 bottom-0 left-0 right-0 bg-black/10"
-                onClick={() => setIsSortPopOpen(false)}
-              ></div>
+              {sortOptions.map((sortOption, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setSortBy(sortOption.value);
+                  }}
+                  className="flex items-center justify-start gap-2 px-4 py-2 text-white hover:bg-slate-400/40"
+                >
+                  <span className="flex-1 text-start">{sortOption.title}</span>
+                  {sortBy === sortOption.value ? (
+                    <TickSquare
+                      size={16}
+                      variant="Bulk"
+                      className="text-blue-200"
+                    />
+                  ) : (
+                    <span className="w-8" />
+                  )}
+                </button>
+              ))}
             </>
-          )}
+          </PopupWrapper>
         </div>
       </div>
       <div className="flex flex-col mt-4">
+        <AddFolder
+          currentId={currentBookMark.id}
+          addFolderInState={addFolderInState}
+        />
         {bookmarks.map((bookmark) => {
           if (bookmark.children) {
             return (
@@ -203,6 +236,7 @@ function App() {
                 onClick={changeBookmarkLevel}
                 bookmark={bookmark}
                 key={bookmark.id}
+                deleteFolder={deleteFolder}
               />
             );
           }
