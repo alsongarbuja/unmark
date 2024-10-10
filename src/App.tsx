@@ -1,6 +1,12 @@
 import { toast, Toaster } from "sonner";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Sort, TickSquare } from "iconsax-react";
+import {
+  ArrowLeft,
+  CloseCircle,
+  SearchNormal,
+  Sort,
+  TickSquare,
+} from "iconsax-react";
 
 // UTILITIES
 import { sortOptions } from "./utils/sort";
@@ -39,12 +45,16 @@ function App() {
   const [reminders, setReminders] = useState<BookmarkReminderObject>({});
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [allBookmarks, setAllBookmarks] = useState<Bookmark[]>([]);
+  const [searchResults, setSearchResults] = useState<Bookmark[]>([]);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [search, setSearch] = useState<string>("");
   const { refs, setIsOpen, isOpen, floatingStyles } = useFloatingPop();
   const [sortBy, setSortBy] = useState<string>(
     localStorage.getItem(BOOKMARKS_SORT_ORDER) ?? "lastUsed"
   );
 
   const changeBookmarkLevel = (id: string) => {
+    setIsSearching(false);
     if (id === "0") {
       setBookmarks(allBookmarks);
       setCurrentBookMark({
@@ -131,6 +141,20 @@ function App() {
     toast.info("Folder removed");
   };
 
+  const searchBookmarks = (search: string) => {
+    if (search === "") {
+      setIsSearching(false);
+      setSearchResults([]);
+      return;
+    }
+    setIsSearching(true);
+    const flatenBookmarks = deepFlatBookmark(allBookmarks);
+    const searchResult = flatenBookmarks.filter((b) =>
+      b.title.toLowerCase().includes(search.toLowerCase())
+    );
+    setSearchResults(searchResult);
+  };
+
   useEffect(() => {
     (async () => {
       const bookmarks = await getAllBookMarks();
@@ -171,92 +195,155 @@ function App() {
         />
         <h1 className="text-2xl font-semibold">Unmark</h1>
       </div>
-      <div className="px-4 my-2">
+      <div className="relative mx-4 my-2 rounded-full bg-slate-400">
         <input
           type="text"
+          onChange={(e) => {
+            setSearch(e.target.value);
+            searchBookmarks(e.target.value);
+          }}
+          value={search}
           placeholder="Search Bookmark"
-          className="w-full p-3 text-gray-800 rounded-full bg-slate-400 placeholder:text-gray-800"
+          className="w-full p-3 text-gray-800 bg-transparent border-none rounded-full px-9 placeholder:text-gray-800"
         />
-      </div>
-      <div className="flex items-center justify-between gap-2 px-4 py-2">
-        <div className="flex items-center gap-2">
-          {currentBookMark.id !== "0" && (
-            <button
-              onClick={() =>
-                changeBookmarkLevel(currentBookMark.parentId ?? "0")
-              }
-            >
-              <ArrowLeft size={20} />
-            </button>
-          )}
-          <h3 className="text-lg font-semibold">{currentBookMark.title}</h3>
-        </div>
-        <div className="flex items-end gap-1">
-          <label htmlFor="sortby">Sort By</label>
-          <PopupWrapper
-            refs={refs}
-            floatingStyles={floatingStyles}
-            buttonLabel="Sort list"
-            buttonIcon={<Sort size={20} />}
-            buttonClick={() => setIsOpen(!isOpen)}
-            closePop={(e) => {
-              e.stopPropagation();
-              setIsOpen(false);
+        <SearchNormal
+          variant="Bulk"
+          className="absolute text-gray-900 -translate-y-1/2 top-1/2 left-2"
+        />
+        {search.length > 0 && (
+          <button
+            onClick={() => {
+              setSearch("");
+              setIsSearching(false);
             }}
-            isOpen={isOpen}
           >
-            <>
-              {sortOptions.map((sortOption, index) => (
-                <button
-                  key={index}
-                  onClick={() => {
-                    setSortBy(sortOption.value);
-                  }}
-                  className="flex items-center justify-start gap-2 px-4 py-2 text-white hover:bg-slate-400/40"
-                >
-                  <span className="flex-1 text-start">{sortOption.title}</span>
-                  {sortBy === sortOption.value ? (
-                    <TickSquare
-                      size={16}
-                      variant="Bulk"
-                      className="text-blue-200"
-                    />
-                  ) : (
-                    <span className="w-8" />
-                  )}
-                </button>
-              ))}
-            </>
-          </PopupWrapper>
-        </div>
-      </div>
-      <div className="flex flex-col mt-4">
-        <AddFolder
-          currentId={currentBookMark.id}
-          addFolderInState={addFolderInState}
-        />
-        {bookmarks.map((bookmark) => {
-          if (bookmark.children) {
-            return (
-              <BookmarkFolder
-                onClick={changeBookmarkLevel}
-                bookmark={bookmark}
-                key={bookmark.id}
-                deleteFolder={deleteFolder}
-              />
-            );
-          }
-          return (
-            <BookmarkTile
-              bookmark={bookmark}
-              key={bookmark.id}
-              remindIn={reminders[bookmark.id].remindIn ?? null}
-              updateReminder={updateReminder}
-              deleteBookmarkFromState={deleteBookmarkFromState}
+            <CloseCircle
+              variant="Bulk"
+              className="absolute text-gray-900 -translate-y-1/2 top-1/2 right-2"
             />
-          );
-        })}
+          </button>
+        )}
       </div>
+      {isSearching ? (
+        <>
+          {searchResults.length === 0 ? (
+            <div className="w-full h-[60vh] flex flex-col items-center justify-center">
+              <p className="text-4xl font-semibold">🤷‍♂️ No Results</p>
+              <p className="font-semibold">
+                No bookmarks found for your search
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col mt-4">
+              {searchResults.map((bookmark) => {
+                if (bookmark.children) {
+                  return (
+                    <BookmarkFolder
+                      onClick={changeBookmarkLevel}
+                      bookmark={bookmark}
+                      key={bookmark.id}
+                      deleteFolder={deleteFolder}
+                    />
+                  );
+                }
+                return (
+                  <BookmarkTile
+                    bookmark={bookmark}
+                    key={bookmark.id}
+                    remindIn={reminders[bookmark.id].remindIn ?? null}
+                    updateReminder={updateReminder}
+                    deleteBookmarkFromState={deleteBookmarkFromState}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <div className="flex items-center justify-between gap-2 px-4 py-2">
+            <div className="flex items-center gap-2">
+              {currentBookMark.id !== "0" && (
+                <button
+                  onClick={() =>
+                    changeBookmarkLevel(currentBookMark.parentId ?? "0")
+                  }
+                >
+                  <ArrowLeft size={20} />
+                </button>
+              )}
+              <h3 className="text-lg font-semibold">{currentBookMark.title}</h3>
+            </div>
+            <div className="flex items-end gap-1">
+              <label htmlFor="sortby">Sort By</label>
+              <PopupWrapper
+                refs={refs}
+                floatingStyles={floatingStyles}
+                buttonLabel="Sort list"
+                buttonIcon={<Sort size={20} />}
+                buttonClick={() => setIsOpen(!isOpen)}
+                closePop={(e) => {
+                  e.stopPropagation();
+                  setIsOpen(false);
+                }}
+                isOpen={isOpen}
+              >
+                <>
+                  {sortOptions.map((sortOption, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setSortBy(sortOption.value);
+                      }}
+                      className="flex items-center justify-start gap-2 px-4 py-2 text-white hover:bg-slate-400/40"
+                    >
+                      <span className="flex-1 text-start">
+                        {sortOption.title}
+                      </span>
+                      {sortBy === sortOption.value ? (
+                        <TickSquare
+                          size={16}
+                          variant="Bulk"
+                          className="text-blue-200"
+                        />
+                      ) : (
+                        <span className="w-8" />
+                      )}
+                    </button>
+                  ))}
+                </>
+              </PopupWrapper>
+            </div>
+          </div>
+          <div className="flex flex-col mt-4">
+            <AddFolder
+              currentId={currentBookMark.id}
+              addFolderInState={addFolderInState}
+            />
+            {bookmarks.map((bookmark) => {
+              if (bookmark.children) {
+                return (
+                  <BookmarkFolder
+                    onClick={changeBookmarkLevel}
+                    bookmark={bookmark}
+                    key={bookmark.id}
+                    deleteFolder={deleteFolder}
+                  />
+                );
+              }
+              return (
+                <BookmarkTile
+                  bookmark={bookmark}
+                  key={bookmark.id}
+                  remindIn={reminders[bookmark.id].remindIn ?? null}
+                  updateReminder={updateReminder}
+                  deleteBookmarkFromState={deleteBookmarkFromState}
+                />
+              );
+            })}
+          </div>
+        </>
+      )}
     </main>
   );
 }
