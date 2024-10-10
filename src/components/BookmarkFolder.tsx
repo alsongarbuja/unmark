@@ -21,7 +21,10 @@ export default function BookmarkFolder({
       className="inline-flex justify-between w-full gap-2 px-4 py-2 text-white hover:bg-slate-400/40"
     >
       <div className="flex gap-2">
-        <Folder2 variant="Bulk" size={20} /> {bookmark.title}
+        <Folder2 variant="Bulk" size={20} /> {bookmark.title}{" "}
+        {bookmark.children &&
+          bookmark.children.length > 0 &&
+          `(${bookmark.children.length})`}
       </div>
       {bookmark.parentId !== "0" && (
         <PopupWrapper

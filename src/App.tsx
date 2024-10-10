@@ -103,9 +103,15 @@ function App() {
     const toRemoveFolder = bookmarks.find((b) => b.id === id);
     if (!toRemoveFolder) return;
 
-    toRemoveFolder.children?.forEach((b) => {
-      removeBookMark(b.id);
-    });
+    const removeChildrenBookmarks = (b: Bookmark) => {
+      b.children?.forEach((child) => {
+        if ("children" in child) {
+          removeChildrenBookmarks(child);
+        }
+        removeBookMark(child.id);
+      });
+    };
+    removeChildrenBookmarks(toRemoveFolder);
     removeBookMark(id);
 
     setBookmarks((prev) => prev.filter((b) => b.id !== id));
