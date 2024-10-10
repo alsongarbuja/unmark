@@ -6,7 +6,12 @@ export const bookmarkChildrenFinder = (id: string, bookmarks: Bookmark[]): Bookm
 
   for (const b of bookmarks) {
     if (b.children) {
-      return bookmarkChildrenFinder(id, b.children as Bookmark[]);
+      const bm = bookmarkChildrenFinder(id, b.children as Bookmark[]);
+      if (bm) {
+        return bm;
+      } else {
+        continue;
+      }
     }
   }
 
