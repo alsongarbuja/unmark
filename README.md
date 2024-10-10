@@ -25,10 +25,9 @@ Unmark is an open source chrome extension built out of the frustration of piled 
 ### Features
 
 - [x] Google bookmarks listing
-- [ ] Sorting and searching of bookmarks
+- [x] Sorting and searching of bookmarks
 - [x] Reminder to individual bookmark
-- [ ] Reminder to folder
-- [ ] Easy unmarking of bookmark(s)
+- [ ] Bulk unmarking and other operations
 
 ### Tech stack
 
@@ -59,9 +58,6 @@ The project is `MIT Licensed` Open source project you are free to clone it, furt
 
 To develop locally following following steps:
 
-<details>
-  <summary><b>Windows</b></summary>
-
 - Clone the project
 
 ```terminal
@@ -85,5 +81,3 @@ pnpm build
 ```
 
 - Load the build folder into chrome extension which you can do by following the steps in the [chrome extention getting started docs](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world)
-
-</details>
