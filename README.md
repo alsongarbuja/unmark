@@ -6,10 +6,6 @@ Tired of pilled up bookmarks? Add reminders to bookmarks and visit them later or
 
 <br />
 
-> [!Warning]
->
-> The extension is not stable yet
-
 ## Table of contents
 
 - [Introduction](#introduction)
@@ -20,7 +16,7 @@ Tired of pilled up bookmarks? Add reminders to bookmarks and visit them later or
 
 ### Introduction
 
-Unmark is an open source chrome extension built out of the frustration of piled of bookmarks. While bookmark is a great feature provided by `chrome`, they often just sit collecting digital dust. So instead of just bookmarking tabs next time use **Unmark** to add reminder and visit the bookmark later, read through it and unmark it.
+Unmark is an open source chrome extension built out of the frustration of piled-up bookmarks. While bookmark is a great feature provided by `browsers`, they often just sit collecting digital dust. So instead of just bookmarking tabs next time use **Unmark** to add reminder then visit the bookmark later, read through it and unmark it.
 
 ### Features
 
@@ -54,9 +50,9 @@ Unmark is an open source chrome extension built out of the frustration of piled 
 
 ### Develop locally
 
-The project is `MIT Licensed` Open source project you are free to clone it, further develop it and distribute it.
+The project under `MIT License`, you are free to clone it, further develop and distribute it.
 
-To develop locally following following steps:
+To develop locally follow these steps:
 
 - Clone the project
 
