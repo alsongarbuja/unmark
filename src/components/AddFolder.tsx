@@ -1,6 +1,6 @@
 import { Add, CloseCircle, Folder2 } from "iconsax-react";
 import { useRef, useState } from "react";
-import { addBookMark } from "../features/Bookmark";
+import { createFolder } from "../features/Bookmark";
 import { toast } from "sonner";
 
 interface IAddFolderProps {
@@ -25,7 +25,7 @@ export default function AddFolder({
     const title = inputRef.current?.value;
     if (!title) return;
 
-    const folder = await addBookMark(title, currentId, true);
+    const folder = await createFolder(title, currentId);
     addFolderInState(folder, currentId);
     setIsAdding(false);
 

@@ -12,7 +12,11 @@ import {
 import { sortOptions } from "./utils/sort";
 
 // FEATURE FUNCTIONS
-import { getAllBookMarks, removeBookMark } from "./features/Bookmark";
+import {
+  getAllBookMarks,
+  removeBookMark,
+  searchBookmark,
+} from "./features/Bookmark";
 import {
   addAllRemindersToLocalStorage,
   getRemindersFromLocalStorage,
@@ -36,25 +40,25 @@ import { deepFlatBookmark } from "./helpers/deepFlatBookmarks";
 import { bookmarkChildrenFinder } from "./helpers/bookmarkFinder";
 import { addLastUsedProperty } from "./helpers/addLastUsedProperty";
 import { getNewAndUpdatedReminders } from "./helpers/updatedReminder";
+import { debounce } from "./helpers/bookmark";
 
 function App() {
   const [currentBookMark, setCurrentBookMark] = useState<Bookmark>({
     id: "0",
-    title: "All BookMarks",
+    title: "All BookMarkssss",
   });
   const [reminders, setReminders] = useState<BookmarkReminderObject>({});
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [allBookmarks, setAllBookmarks] = useState<Bookmark[]>([]);
   const [searchResults, setSearchResults] = useState<Bookmark[]>([]);
-  const [isSearching, setIsSearching] = useState<boolean>(false);
-  const [search, setSearch] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const { refs, setIsOpen, isOpen, floatingStyles } = useFloatingPop();
   const [sortBy, setSortBy] = useState<string>(
     localStorage.getItem(BOOKMARKS_SORT_ORDER) ?? "lastUsed"
   );
 
-  const changeBookmarkLevel = (id: string) => {
-    setIsSearching(false);
+  const changeBookmarkLevel = async (id: string) => {
+    setSearchQuery("");
     if (id === "0") {
       setBookmarks(allBookmarks);
       setCurrentBookMark({
@@ -63,9 +67,10 @@ function App() {
       });
       return;
     }
-    const bookmarks = bookmarkChildrenFinder(id, allBookmarks);
-    setCurrentBookMark(bookmarks ?? { id: "0", title: "All BookMarks" });
-    setBookmarks(bookmarks ? (bookmarks.children as Bookmark[]) : []);
+    // const b = await chrome.bookmarks.get(id);
+    const b = bookmarkChildrenFinder(id, allBookmarks);
+    setCurrentBookMark(b ?? { id: "0", title: "All BookMarks" });
+    setBookmarks(b ? (b.children as Bookmark[]) : []);
   };
 
   const updateReminder = (id: string, remindIn: Date | null) => {
@@ -141,18 +146,17 @@ function App() {
     toast.info("Folder removed");
   };
 
-  const searchBookmarks = (search: string) => {
-    if (search === "") {
-      setIsSearching(false);
-      setSearchResults([]);
-      return;
-    }
-    setIsSearching(true);
-    const flatenBookmarks = deepFlatBookmark(allBookmarks);
-    const searchResult = flatenBookmarks.filter((b) =>
-      b.title.toLowerCase().includes(search.toLowerCase())
-    );
-    setSearchResults(searchResult);
+  const debouncedSearch = debounce(async (query: string) => {
+    const bookmarks = await searchBookmark(query);
+    console.log(bookmarks);
+    setSearchResults(bookmarks);
+  }, 750);
+
+  const search = async (query: string) => {
+    setSearchQuery(query);
+    debouncedSearch(query);
+    // const s = await searchBookmark(query);
+    // setSearchResults(s);
   };
 
   useEffect(() => {
@@ -187,6 +191,8 @@ function App() {
   return (
     <main className="min-h-screen text-white bg-slate-800">
       <Toaster richColors position="bottom-center" />
+
+      {/* TITLE */}
       <div className="flex items-center justify-start gap-4 px-4 py-6">
         <img
           src="/icons/unmark-icon-32x32.png"
@@ -195,14 +201,15 @@ function App() {
         />
         <h1 className="text-2xl font-semibold">Unmark</h1>
       </div>
+
+      {/* SEARCH AREA */}
       <div className="relative mx-4 my-2 rounded-full bg-slate-400">
         <input
           type="text"
-          onChange={(e) => {
-            setSearch(e.target.value);
-            searchBookmarks(e.target.value);
+          onChange={async (e) => {
+            await search(e.target.value);
           }}
-          value={search}
+          value={searchQuery}
           placeholder="Search Bookmark"
           className="w-full p-3 text-gray-800 bg-transparent border-none rounded-full px-9 placeholder:text-gray-800"
         />
@@ -213,8 +220,7 @@ function App() {
         {search.length > 0 && (
           <button
             onClick={() => {
-              setSearch("");
-              setIsSearching(false);
+              setSearchQuery("");
             }}
           >
             <CloseCircle
@@ -224,7 +230,9 @@ function App() {
           </button>
         )}
       </div>
-      {isSearching ? (
+
+      {/* MAIN AREA */}
+      {!searchQuery ? (
         <>
           {searchResults.length === 0 ? (
             <div className="w-full h-[60vh] flex flex-col items-center justify-center">
@@ -250,7 +258,7 @@ function App() {
                   <BookmarkTile
                     bookmark={bookmark}
                     key={bookmark.id}
-                    remindIn={reminders[bookmark.id].remindIn ?? null}
+                    remindIn={reminders[bookmark.id]?.remindIn ?? null}
                     updateReminder={updateReminder}
                     deleteBookmarkFromState={deleteBookmarkFromState}
                   />
