@@ -1,18 +1,56 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, CloseCircle, SearchNormal } from "iconsax-react";
+import {
+  ArrowLeft,
+  CloseCircle,
+  SearchNormal,
+  Sort,
+  TickSquare,
+} from "iconsax-react";
 import { Toaster } from "sonner";
 import "./style.css";
-import { getBookmarks } from "@/helpers/bookmark";
+import { getBookmarkChildrens, getBookmarks } from "@/helpers/bookmark";
+import BookmarkFolder from "@/components/BookmarkFolder";
+import BookmarkTile from "@/components/BookmarkTile";
+import { SORT_OPTIONS } from "@/constants/sort";
 
 function App() {
+  const { refs, setIsOpen, isOpen, floatingStyles } = useFloatingPop();
+
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentBookMark, setCurrentBookmark] = useState<Partial<Bookmark>>({
+    id: "0",
+    title: "All Bookmarks",
+  });
+  const [sortBy, setSortBy] = useState(SORT_OPTIONS[0].value);
   const [searchResults, setSearchResults] = useState<Bookmark[]>([]);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [allBookmarks, setAllBookmarks] = useState<Bookmark[]>([]);
+
+  const changeBookmarkLevel = async (id: string) => {
+    if (id === "0") {
+      setCurrentBookmark({
+        id: "0",
+        title: "All Bookmarks",
+      });
+      setBookmarks(allBookmarks);
+      return;
+    }
+
+    const b = getBookmarkChildrens(id, allBookmarks);
+    setCurrentBookmark(
+      b ?? {
+        id: "0",
+        title: "All Bookmarks",
+      }
+    );
+    setBookmarks(b?.children as Bookmark[]);
+  };
 
   useEffect(() => {
     (async () => {
       const b = await getBookmarks();
       setBookmarks(b[0].children!);
+      setAllBookmarks(b[0].children!);
     })();
   }, []);
 
@@ -36,7 +74,9 @@ function App() {
         />
         <SearchNormal
           variant="Bulk"
-          className="absolute text-gray-900 -translate-y-1/2 top-1/2 left-2"
+          size={24}
+          color="black"
+          className="absolute -translate-y-1/2 top-1/2 left-2"
         />
         {searchQuery.length > 0 && (
           <button
@@ -46,7 +86,9 @@ function App() {
           >
             <CloseCircle
               variant="Bulk"
-              className="absolute text-gray-900 -translate-y-1/2 top-1/2 right-2"
+              size={24}
+              color="black"
+              className="absolute cursor-pointer -translate-y-1/2 top-1/2 right-2"
             />
           </button>
         )}
@@ -65,24 +107,24 @@ function App() {
               {searchResults.map((bookmark) => {
                 if (bookmark.children) {
                   return (
-                    <p key={bookmark.id}>Bookmark folder - {bookmark.title}</p>
-                    // <BookmarkFolder
-                    //   onClick={changeBookmarkLevel}
-                    //   bookmark={bookmark}
-                    //   key={bookmark.id}
-                    //   deleteFolder={deleteFolder}
-                    // />
+                    <BookmarkFolder
+                      // onClick={changeBookmarkLevel}
+                      onClick={() => {}}
+                      bookmark={bookmark}
+                      key={bookmark.id}
+                      deleteFolder={() => {}}
+                      // deleteFolder={deleteFolder}
+                    />
                   );
                 }
                 return (
-                  <p key={bookmark.id}>Bookmark - {bookmark.title}</p>
-                  // <BookmarkTile
-                  //   bookmark={bookmark}
-                  //   key={bookmark.id}
-                  //   remindIn={reminders[bookmark.id].remindIn ?? null}
-                  //   updateReminder={updateReminder}
-                  //   deleteBookmarkFromState={deleteBookmarkFromState}
-                  // />
+                  <BookmarkTile
+                    bookmark={bookmark}
+                    key={bookmark.id}
+                    remindIn={null}
+                    // updateReminder={updateReminder}
+                    deleteBookmarkFromState={() => {}}
+                  />
                 );
               })}
             </div>
@@ -92,18 +134,19 @@ function App() {
         <>
           <div className="flex items-center justify-between gap-2 px-4 py-2">
             <div className="flex items-center gap-2">
-              {/* {currentBookMark.id !== "0" && (
+              {currentBookMark.id !== "0" && (
                 <button
                   onClick={() =>
                     changeBookmarkLevel(currentBookMark.parentId ?? "0")
                   }
+                  className="cursor-pointer"
                 >
-                  <ArrowLeft size={20} />
+                  <ArrowLeft color="white" size={20} />
                 </button>
-              )} */}
-              {/* <h3 className="text-lg font-semibold">{currentBookMark.title}</h3> */}
+              )}
+              <h3 className="text-lg font-semibold">{currentBookMark.title}</h3>
             </div>
-            {/* <div className="flex items-end gap-1">
+            <div className="flex items-end gap-1">
               <label htmlFor="sortby">Sort By</label>
               <PopupWrapper
                 refs={refs}
@@ -118,11 +161,11 @@ function App() {
                 isOpen={isOpen}
               >
                 <>
-                  {sortOptions.map((sortOption, index) => (
+                  {SORT_OPTIONS.map((sortOption, index) => (
                     <button
                       key={index}
                       onClick={() => {
-                        setSortBy(sortOption.value);
+                        // setSortBy(sortOption.value);
                       }}
                       className="flex items-center justify-start gap-2 px-4 py-2 text-white hover:bg-slate-400/40"
                     >
@@ -142,7 +185,7 @@ function App() {
                   ))}
                 </>
               </PopupWrapper>
-            </div> */}
+            </div>
           </div>
           <div className="flex flex-col mt-4">
             {/* <AddFolder
@@ -152,24 +195,23 @@ function App() {
             {bookmarks.map((bookmark) => {
               if (bookmark.children) {
                 return (
-                  <p key={bookmark.id}>{bookmark.title} / folder</p>
-                  // <BookmarkFolder
-                  //   onClick={changeBookmarkLevel}
-                  //   bookmark={bookmark}
-                  //   key={bookmark.id}
-                  //   deleteFolder={deleteFolder}
-                  // />
+                  <BookmarkFolder
+                    onClick={changeBookmarkLevel}
+                    bookmark={bookmark}
+                    key={bookmark.id}
+                    deleteFolder={() => {}}
+                    // deleteFolder={deleteFolder}
+                  />
                 );
               }
               return (
-                <p key={bookmark.id}>{bookmark.title}</p>
-                // <BookmarkTile
-                //   bookmark={bookmark}
-                //   key={bookmark.id}
-                //   remindIn={reminders[bookmark.id].remindIn ?? null}
-                //   updateReminder={updateReminder}
-                //   deleteBookmarkFromState={deleteBookmarkFromState}
-                // />
+                <BookmarkTile
+                  bookmark={bookmark}
+                  key={bookmark.id}
+                  remindIn={null}
+                  // updateReminder={updateReminder}
+                  deleteBookmarkFromState={() => {}}
+                />
               );
             })}
           </div>

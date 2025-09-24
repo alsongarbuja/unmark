@@ -23,6 +23,30 @@ export const getBookmarkById = async (id: string) => {
 
 /**
  *
+ * Get children of the Bookmark
+ * @param id {string}
+ * @returns List of Bookmarks
+ */
+export const getBookmarkChildrens = (
+  id: string,
+  allBookmarks: Bookmark[]
+): Bookmark | undefined => {
+  const bookmark = allBookmarks.find((b) => b.id === id);
+  if (bookmark) return bookmark as Bookmark;
+
+  for (const b of allBookmarks) {
+    if (b.children) {
+      const bm = getBookmarkChildrens(id, b.children as Bookmark[]);
+      if (bm) return bm as Bookmark;
+      else continue;
+    }
+  }
+
+  return undefined;
+};
+
+/**
+ *
  * Create new bookmark
  * @param parentId {string}
  * @param title {string}
